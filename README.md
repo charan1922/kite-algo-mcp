@@ -329,11 +329,6 @@ For support and questions:
 
 ## Changelog
 
-### v1.0.1
-
-- Changed default HTTP server port from 3000 to 5555
-- Updated documentation and scripts to reflect new port
-
 ### v1.0.0
 
 - Initial release
