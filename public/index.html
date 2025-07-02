@@ -311,6 +311,60 @@
           </div>
           <div class="result" id="deltaResult"></div>
         </div>
+
+        <!-- Stock Options Support Card -->
+        <div class="card">
+          <h3>🔍 Stock Options Support</h3>
+          <p style="margin-bottom: 20px; color: #666">
+            Check if a stock supports options trading and view all supported
+            stocks.
+          </p>
+
+          <div class="form-group">
+            <label for="stockSymbol">Stock Symbol</label>
+            <input
+              type="text"
+              id="stockSymbol"
+              placeholder="e.g., RELIANCE, TCS"
+              style="text-transform: uppercase"
+            />
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 15px">
+            <button class="btn" onclick="checkStockSupport()" style="flex: 1">
+              Check Support
+            </button>
+            <button
+              class="btn"
+              onclick="listSupportedStocks()"
+              style="flex: 1; background: #48bb78"
+            >
+              List All Stocks
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label for="stockSearch">Search Supported Stocks</label>
+            <input
+              type="text"
+              id="stockSearch"
+              placeholder="Search by symbol or name..."
+            />
+            <button
+              class="btn"
+              onclick="searchSupportedStocks()"
+              style="margin-top: 10px; width: 100%"
+            >
+              Search
+            </button>
+          </div>
+
+          <div class="loading" id="stockLoading">
+            <div class="spinner"></div>
+            <p>Checking stock information...</p>
+          </div>
+          <div class="result" id="stockResult"></div>
+        </div>
       </div>
     </div>
 
@@ -462,6 +516,81 @@
         }
 
         showLoading("deltaLoading", false);
+      }
+
+      async function checkStockSupport() {
+        const symbol = document
+          .getElementById("stockSymbol")
+          .value.trim()
+          .toUpperCase();
+
+        if (!symbol) {
+          alert("Please enter a stock symbol");
+          return;
+        }
+
+        showLoading("stockLoading", true);
+        clearResult("stockResult");
+
+        try {
+          const response = await fetch(`/api/stocks/${symbol}/options-support`);
+          const data = await response.json();
+
+          showResult("stockResult", data, data.success);
+        } catch (error) {
+          showResult("stockResult", { error: error.message }, false);
+        }
+
+        showLoading("stockLoading", false);
+      }
+
+      async function listSupportedStocks() {
+        showLoading("stockLoading", true);
+        clearResult("stockResult");
+
+        try {
+          const response = await fetch("/api/stocks/options-supported");
+          const data = await response.json();
+
+          // Limit display to first 50 stocks to avoid overwhelming the UI
+          if (data.success && data.stocks && data.stocks.length > 50) {
+            data.displayNote = `Showing first 50 of ${data.totalCount} stocks. Use search to find specific stocks.`;
+            data.stocks = data.stocks.slice(0, 50);
+          }
+
+          showResult("stockResult", data, data.success);
+        } catch (error) {
+          showResult("stockResult", { error: error.message }, false);
+        }
+
+        showLoading("stockLoading", false);
+      }
+
+      async function searchSupportedStocks() {
+        const searchTerm = document.getElementById("stockSearch").value.trim();
+
+        if (!searchTerm) {
+          alert("Please enter a search term");
+          return;
+        }
+
+        showLoading("stockLoading", true);
+        clearResult("stockResult");
+
+        try {
+          const response = await fetch(
+            `/api/stocks/options-supported?search=${encodeURIComponent(
+              searchTerm
+            )}`
+          );
+          const data = await response.json();
+
+          showResult("stockResult", data, data.success);
+        } catch (error) {
+          showResult("stockResult", { error: error.message }, false);
+        }
+
+        showLoading("stockLoading", false);
       }
 
       function showLoading(elementId, show) {

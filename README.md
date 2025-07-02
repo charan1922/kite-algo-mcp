@@ -136,6 +136,46 @@ Calculates the net delta exposure for options positions grouped by underlying.
 - Accounts for both call and put options
 - Returns net delta exposure per underlying
 
+#### 4. isStockOptionTradingSupported
+
+Checks if a specific stock symbol supports options trading.
+
+**Parameters:**
+
+- `symbol` (string): The stock symbol to check (e.g., 'RELIANCE', 'TCS')
+
+**Returns:**
+
+- `supported` (boolean): Whether the stock supports options trading
+- `stock` (object): Stock details including symbol, name, and lot size (if supported)
+- `message` (string): Error message if not supported
+
+#### 5. getOptionsSupportedStocks
+
+Retrieves a list of all stocks that support options trading.
+
+**Parameters:**
+
+- `searchTerm` (string, optional): Filter stocks by symbol or name
+
+**Returns:**
+
+- `count` (number): Number of matching stocks
+- `stocks` (array): Array of stock objects with symbol, name, and lot size
+
+#### 6. getStockDetails
+
+Gets detailed information about a specific stock.
+
+**Parameters:**
+
+- `symbol` (string): The stock symbol to get details for
+
+**Returns:**
+
+- `found` (boolean): Whether the stock was found
+- `details` (object): Complete stock information including options support status
+
 ### HTTP API Endpoints
 
 The HTTP server provides RESTful API endpoints for external integration:
@@ -187,6 +227,42 @@ Content-Type: application/json
 GET /api/delta/calculate
 ```
 
+#### Check Options Trading Support
+
+```
+GET /api/stocks/:symbol/options-support
+```
+
+Check if a specific stock supports options trading:
+
+```
+GET /api/stocks/RELIANCE/options-support
+```
+
+#### List Options-Supported Stocks
+
+```
+GET /api/stocks/options-supported
+```
+
+Get all stocks that support options trading, with optional search:
+
+```
+GET /api/stocks/options-supported?search=TCS
+```
+
+#### Get Stock Details
+
+```
+GET /api/stocks/:symbol/details
+```
+
+Get detailed information about a specific stock:
+
+```
+GET /api/stocks/INFY/details
+```
+
 #### API Documentation
 
 ```
@@ -201,7 +277,8 @@ Access the interactive web dashboard at `http://localhost:5555` when running the
 - 💹 **Equity Trading Interface**: Run equity algorithms with custom parameters
 - 🎯 **Options Trading Interface**: Execute options strategies
 - 📈 **Portfolio Delta Calculator**: Real-time delta analysis
-- 🚀 **Server Health Monitoring**: Live server status
+- � **Stock Options Support Checker**: Validate options trading support for stocks
+- �🚀 **Server Health Monitoring**: Live server status
 
 ## Project Structure
 
@@ -328,6 +405,14 @@ For support and questions:
 - Open an issue in this repository
 
 ## Changelog
+
+### v1.0.2
+
+- Added stock options support validation functionality
+- New MCP tools: `isStockOptionTradingSupported`, `getOptionsSupportedStocks`, `getStockDetails`
+- New HTTP endpoints for stock validation: `/api/stocks/:symbol/options-support`, `/api/stocks/options-supported`, `/api/stocks/:symbol/details`
+- Enhanced API documentation with stock checking examples
+- Improved error handling for unsupported stocks
 
 ### v1.0.1
 

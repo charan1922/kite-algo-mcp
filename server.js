@@ -9,6 +9,9 @@ import {
   authenticate,
   fetchInitialData,
   analyzeAndDecideTrade,
+  isStockOptionTradingSupported,
+  getOptionsSupportedStocks,
+  getStockDetails,
 } from "./lib/tradingService.js";
 
 const app = express();
@@ -158,6 +161,67 @@ app.get("/api/delta/calculate", async (req, res) => {
   }
 });
 
+// Check if a stock supports options trading
+app.get("/api/stocks/:symbol/options-support", async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const result = isStockOptionTradingSupported(symbol.toUpperCase());
+
+    res.json({
+      success: true,
+      symbol: symbol.toUpperCase(),
+      ...result,
+      checkedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Get all stocks that support options trading
+app.get("/api/stocks/options-supported", async (req, res) => {
+  try {
+    const { search } = req.query;
+    const result = getOptionsSupportedStocks(search);
+
+    res.json({
+      success: true,
+      searchTerm: search || null,
+      totalCount: result.stocks.length,
+      ...result,
+      retrievedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+// Get detailed information about a specific stock
+app.get("/api/stocks/:symbol/details", async (req, res) => {
+  try {
+    const { symbol } = req.params;
+    const result = getStockDetails(symbol.toUpperCase());
+
+    res.json({
+      success: true,
+      symbol: symbol.toUpperCase(),
+      ...result,
+      retrievedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
 // Serve static files (for frontend)
 app.use(express.static("public"));
 
@@ -173,6 +237,12 @@ app.get("/api/docs", (req, res) => {
       "POST /api/trading/run": "Run equity trading algorithm",
       "POST /api/options/run": "Run options trading algorithm",
       "GET /api/delta/calculate": "Calculate net delta for options positions",
+      "GET /api/stocks/:symbol/options-support":
+        "Check if a stock supports options trading",
+      "GET /api/stocks/options-supported":
+        "Get all stocks that support options trading (optional ?search= parameter)",
+      "GET /api/stocks/:symbol/details":
+        "Get detailed information about a specific stock",
       "GET /api/docs": "This documentation",
     },
     examples: {
@@ -197,6 +267,22 @@ app.get("/api/docs", (req, res) => {
           tradeDurationMinutes: 5,
         },
       },
+      stockSupport: {
+        url: "/api/stocks/RELIANCE/options-support",
+        method: "GET",
+        description: "Check if RELIANCE supports options trading",
+      },
+      stocksList: {
+        url: "/api/stocks/options-supported?search=REL",
+        method: "GET",
+        description:
+          "Get all stocks with 'REL' in symbol/name that support options",
+      },
+      stockDetails: {
+        url: "/api/stocks/TCS/details",
+        method: "GET",
+        description: "Get detailed information about TCS stock",
+      },
     },
   });
 });
@@ -212,6 +298,9 @@ app.use("*", (req, res) => {
       "/api/trading/run",
       "/api/options/run",
       "/api/delta/calculate",
+      "/api/stocks/:symbol/options-support",
+      "/api/stocks/options-supported",
+      "/api/stocks/:symbol/details",
     ],
   });
 });

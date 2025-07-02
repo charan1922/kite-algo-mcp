@@ -5,6 +5,9 @@ import {
   runTradingAlgorithm,
   runOptionTradingAlgorithm,
   calculateNetDelta,
+  isStockOptionTradingSupported,
+  getOptionsSupportedStocks,
+  getStockDetails,
 } from "./lib/tradingService.js";
 
 const server = new McpServer({
@@ -93,6 +96,54 @@ async function init() {
     inputSchema: z.object({}),
     async call() {
       return await calculateNetDelta();
+    },
+  });
+
+  // Register options stock validation tool
+  server.registerTool({
+    name: "isStockOptionTradingSupported",
+    description:
+      "Check if a specific stock symbol supports options trading and get its details including lot size.",
+    inputSchema: z.object({
+      symbol: z
+        .string()
+        .describe("The stock symbol to check (e.g., 'RELIANCE', 'TCS')"),
+    }),
+    async call({ symbol }) {
+      return isStockOptionTradingSupported(symbol);
+    },
+  });
+
+  // Register options supported stocks listing tool
+  server.registerTool({
+    name: "getOptionsSupportedStocks",
+    description:
+      "Get list of all stocks that support options trading, with optional search functionality.",
+    inputSchema: z.object({
+      searchTerm: z
+        .string()
+        .optional()
+        .describe("Optional search term to filter stocks by symbol or name"),
+    }),
+    async call({ searchTerm }) {
+      return getOptionsSupportedStocks(searchTerm);
+    },
+  });
+
+  // Register stock details tool
+  server.registerTool({
+    name: "getStockDetails",
+    description:
+      "Get detailed information about a specific stock including lot size and options support status.",
+    inputSchema: z.object({
+      symbol: z
+        .string()
+        .describe(
+          "The stock symbol to get details for (e.g., 'RELIANCE', 'TCS')"
+        ),
+    }),
+    async call({ symbol }) {
+      return getStockDetails(symbol);
     },
   });
 

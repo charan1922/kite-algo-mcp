@@ -1095,3 +1095,5 @@ const optionsStockList = [
     lotSize: 900,
   },
 ];
+
+export default optionsStockList;
