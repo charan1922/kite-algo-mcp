@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kite Algo Trading Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      }
+
+      .card h3 {
+        color: #4a5568;
+        margin-bottom: 20px;
+        font-size: 1.3rem;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 10px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+        color: #4a5568;
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border-color 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 500;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        width: 100%;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 8px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .result.success {
+        background-color: #f0fff4;
+        border: 1px solid #9ae6b4;
+        color: #22543d;
+      }
+
+      .result.error {
+        background-color: #fff5f5;
+        border: 1px solid #feb2b2;
+        color: #742a2a;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+      }
+
+      .status-indicator.online {
+        background-color: #48bb78;
+      }
+
+      .status-indicator.offline {
+        background-color: #f56565;
+      }
+
+      .health-check {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        margin-top: 10px;
+      }
+
+      .spinner {
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #667eea;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🚀 Kite Algo Trading Dashboard</h1>
+        <p>Automated Trading Algorithms for Equity and Options</p>
+      </div>
+
+      <div class="health-check">
+        <h3>Server Status</h3>
+        <p>
+          <span class="status-indicator" id="statusIndicator"></span
+          ><span id="statusText">Checking...</span>
+        </p>
+      </div>
+
+      <div class="dashboard">
+        <!-- Market Analysis Card -->
+        <div class="card">
+          <h3>📊 Market Analysis</h3>
+          <div class="form-group">
+            <label for="analysisToken">Instrument Token:</label>
+            <input
+              type="number"
+              id="analysisToken"
+              placeholder="e.g., 408065"
+            />
+          </div>
+          <button class="btn" onclick="getAnalysis()">Analyze Market</button>
+          <div class="loading" id="analysisLoading">
+            <div class="spinner"></div>
+            <p>Analyzing market data...</p>
+          </div>
+          <div class="result" id="analysisResult"></div>
+        </div>
+
+        <!-- Equity Trading Card -->
+        <div class="card">
+          <h3>💹 Equity Trading Algorithm</h3>
+          <div class="form-group">
+            <label for="equityToken">Instrument Token:</label>
+            <input type="number" id="equityToken" placeholder="e.g., 408065" />
+          </div>
+          <div class="form-group">
+            <label for="equityQuantity">Quantity:</label>
+            <input type="number" id="equityQuantity" placeholder="e.g., 100" />
+          </div>
+          <div class="form-group">
+            <label for="equityDuration">Duration (minutes):</label>
+            <input type="number" id="equityDuration" placeholder="e.g., 5" />
+          </div>
+          <button class="btn" onclick="runEquityTrading()">
+            Start Trading Algorithm
+          </button>
+          <div class="loading" id="equityLoading">
+            <div class="spinner"></div>
+            <p>Running trading algorithm...</p>
+          </div>
+          <div class="result" id="equityResult"></div>
+        </div>
+
+        <!-- Options Trading Card -->
+        <div class="card">
+          <h3>🎯 Options Trading Algorithm</h3>
+          <div class="form-group">
+            <label for="optionToken">Instrument Token:</label>
+            <input type="number" id="optionToken" placeholder="e.g., 408065" />
+          </div>
+          <div class="form-group">
+            <label for="strikePrice">Strike Price:</label>
+            <input type="number" id="strikePrice" placeholder="e.g., 2500" />
+          </div>
+          <div class="form-group">
+            <label for="optionType">Option Type:</label>
+            <select id="optionType">
+              <option value="CE">Call (CE)</option>
+              <option value="PE">Put (PE)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="expiryDate">Expiry Date:</label>
+            <input type="date" id="expiryDate" />
+          </div>
+          <div class="form-group">
+            <label for="optionQuantity">Quantity:</label>
+            <input type="number" id="optionQuantity" placeholder="e.g., 1" />
+          </div>
+          <div class="form-group">
+            <label for="optionDuration">Duration (minutes):</label>
+            <input type="number" id="optionDuration" placeholder="e.g., 5" />
+          </div>
+          <button class="btn" onclick="runOptionTrading()">
+            Start Options Algorithm
+          </button>
+          <div class="loading" id="optionLoading">
+            <div class="spinner"></div>
+            <p>Running options algorithm...</p>
+          </div>
+          <div class="result" id="optionResult"></div>
+        </div>
+
+        <!-- Delta Calculation Card -->
+        <div class="card">
+          <h3>📈 Portfolio Delta Analysis</h3>
+          <p style="margin-bottom: 20px; color: #666">
+            Calculate net delta for your options positions using Black-Scholes
+            model.
+          </p>
+          <button class="btn" onclick="calculateDelta()">
+            Calculate Net Delta
+          </button>
+          <div class="loading" id="deltaLoading">
+            <div class="spinner"></div>
+            <p>Calculating portfolio delta...</p>
+          </div>
+          <div class="result" id="deltaResult"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Check server health on page load
+      window.onload = function () {
+        checkHealth();
+        // Set default expiry date to next Friday
+        const nextFriday = getNextFriday();
+        document.getElementById("expiryDate").value = nextFriday;
+      };
+
+      function getNextFriday() {
+        const today = new Date();
+        const dayOfWeek = today.getDay();
+        const daysUntilFriday = (5 - dayOfWeek + 7) % 7 || 7;
+        const nextFriday = new Date(
+          today.getTime() + daysUntilFriday * 24 * 60 * 60 * 1000
+        );
+        return nextFriday.toISOString().split("T")[0];
+      }
+
+      async function checkHealth() {
+        try {
+          const response = await fetch("/health");
+          const data = await response.json();
+
+          document.getElementById("statusIndicator").className =
+            "status-indicator online";
+          document.getElementById(
+            "statusText"
+          ).textContent = `Server Online - ${data.service}`;
+        } catch (error) {
+          document.getElementById("statusIndicator").className =
+            "status-indicator offline";
+          document.getElementById("statusText").textContent = "Server Offline";
+        }
+      }
+
+      async function getAnalysis() {
+        const token = document.getElementById("analysisToken").value;
+        if (!token) {
+          alert("Please enter an instrument token");
+          return;
+        }
+
+        showLoading("analysisLoading", true);
+        clearResult("analysisResult");
+
+        try {
+          const response = await fetch(`/api/analysis/${token}`);
+          const data = await response.json();
+
+          showResult("analysisResult", data, data.success);
+        } catch (error) {
+          showResult("analysisResult", { error: error.message }, false);
+        }
+
+        showLoading("analysisLoading", false);
+      }
+
+      async function runEquityTrading() {
+        const token = document.getElementById("equityToken").value;
+        const quantity = document.getElementById("equityQuantity").value;
+        const duration = document.getElementById("equityDuration").value;
+
+        if (!token || !quantity || !duration) {
+          alert("Please fill in all fields");
+          return;
+        }
+
+        showLoading("equityLoading", true);
+        clearResult("equityResult");
+
+        try {
+          const response = await fetch("/api/trading/run", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instrumentToken: parseInt(token),
+              quantity: parseInt(quantity),
+              tradeDurationMinutes: parseInt(duration),
+            }),
+          });
+
+          const data = await response.json();
+          showResult("equityResult", data, data.success);
+        } catch (error) {
+          showResult("equityResult", { error: error.message }, false);
+        }
+
+        showLoading("equityLoading", false);
+      }
+
+      async function runOptionTrading() {
+        const token = document.getElementById("optionToken").value;
+        const strike = document.getElementById("strikePrice").value;
+        const type = document.getElementById("optionType").value;
+        const expiry = document.getElementById("expiryDate").value;
+        const quantity = document.getElementById("optionQuantity").value;
+        const duration = document.getElementById("optionDuration").value;
+
+        if (!token || !strike || !type || !expiry || !quantity || !duration) {
+          alert("Please fill in all fields");
+          return;
+        }
+
+        showLoading("optionLoading", true);
+        clearResult("optionResult");
+
+        try {
+          const response = await fetch("/api/options/run", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              instrumentToken: parseInt(token),
+              strikePrice: parseInt(strike),
+              optionType: type,
+              expiryDate: expiry,
+              quantity: parseInt(quantity),
+              tradeDurationMinutes: parseInt(duration),
+            }),
+          });
+
+          const data = await response.json();
+          showResult("optionResult", data, data.success);
+        } catch (error) {
+          showResult("optionResult", { error: error.message }, false);
+        }
+
+        showLoading("optionLoading", false);
+      }
+
+      async function calculateDelta() {
+        showLoading("deltaLoading", true);
+        clearResult("deltaResult");
+
+        try {
+          const response = await fetch("/api/delta/calculate");
+          const data = await response.json();
+
+          showResult("deltaResult", data, data.success);
+        } catch (error) {
+          showResult("deltaResult", { error: error.message }, false);
+        }
+
+        showLoading("deltaLoading", false);
+      }
+
+      function showLoading(elementId, show) {
+        document.getElementById(elementId).style.display = show
+          ? "block"
+          : "none";
+      }
+
+      function clearResult(elementId) {
+        document.getElementById(elementId).innerHTML = "";
+        document.getElementById(elementId).className = "result";
+      }
+
+      function showResult(elementId, data, success) {
+        const element = document.getElementById(elementId);
+        element.className = success ? "result success" : "result error";
+        element.innerHTML = "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
+      }
+    </script>
+  </body>
+</html>
